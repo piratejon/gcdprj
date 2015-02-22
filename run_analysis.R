@@ -67,6 +67,13 @@ consume_data <- function(whichFile, whichSet) {
   }
 }
 
+get_feature_labels <- function() {
+  all_features <- consume_data('features')
+  mean_std_features <- all_features[selectFeatureVariables(all_features),]
+  names(mean_std_features) <- c('id', 'name')
+  mean_std_features
+}
+
 join_all_the_data <- function() {
   # load the activity labels
   actlab <- consume_data('activity_labels')
@@ -74,9 +81,7 @@ join_all_the_data <- function() {
   actlab$label <- as.factor(actlab$label)
 
   # load the feature labels
-  all_features <- consume_data('features')
-  mean_std_features <- all_features[selectFeatureVariables(all_features),]
-  names(mean_std_features) <- c('id', 'name')
+  mean_std_features <- get_feature_labels()
 
   # load and name the test data
   x_test <- consume_data('X', 'test')[,mean_std_features$id]
@@ -107,9 +112,34 @@ join_all_the_data <- function() {
   train_set <- cbind(x_train, y_train, s_train)
 
   # merge the test and trial sets
+  # -- factoring them is not required by the assignment but could be useful down the line
   test_set$set <- as.factor('test')
   train_set$set <- as.factor('train')
 
-  full_set <- rbind(test_set, train_set)
+  rbind(test_set, train_set)
+}
+
+mean_by_subject_and_activity <- function(df) {
+  result <- expand.grid(levels(df$activity), levels(df$subject_id))
+  features <- get_feature_labels()
+
+  all_means <- lapply(
+    features$name, function(f) {
+      apply(result, 1, function(x) {
+          mean(
+              subset(
+                tidy, activity==x[[1]] & subject_id==x[[2]], select=f
+                )[[f]]
+              )
+          }
+          )
+      }
+      )
+  write.table(all_means, file='tidy2.txt', sep='\t', row.name=FALSE)
+}
+
+main <- function() {
+  tidy <- join_all_the_data()
+  write.table(tidy, file='tidy.txt', sep='\t', row.name=FALSE)
 }
 
