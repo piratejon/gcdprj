@@ -139,7 +139,7 @@ mean_by_subject_and_activity <- function(df) {
 
   names(result) <- c("activity", "subject_id")
   names(all_means) <- features$name
-  rbind(result, all_means)
+  cbind(result, all_means)
 }
 
 main <- function() {
@@ -148,4 +148,6 @@ main <- function() {
   all_means <- mean_by_subject_and_activity(tidy)
   write.table(all_means, file='tidy2.txt', sep='\t', row.name=FALSE)
 }
+
+main()
 
