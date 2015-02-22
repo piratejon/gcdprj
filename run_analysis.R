@@ -123,23 +123,29 @@ mean_by_subject_and_activity <- function(df) {
   result <- expand.grid(levels(df$activity), levels(df$subject_id))
   features <- get_feature_labels()
 
-  all_means <- lapply(
+  all_means <- as.data.frame(lapply(
     features$name, function(f) {
       apply(result, 1, function(x) {
           mean(
               subset(
-                tidy, activity==x[[1]] & subject_id==x[[2]], select=f
+                df, activity==x[[1]] & subject_id==x[[2]], select=f
                 )[[f]]
               )
           }
           )
       }
       )
-  write.table(all_means, file='tidy2.txt', sep='\t', row.name=FALSE)
+      )
+
+  names(result) <- c("activity", "subject_id")
+  names(all_means) <- features$name
+  rbind(result, all_means)
 }
 
 main <- function() {
   tidy <- join_all_the_data()
   write.table(tidy, file='tidy.txt', sep='\t', row.name=FALSE)
+  all_means <- mean_by_subject_and_activity(tidy)
+  write.table(all_means, file='tidy2.txt', sep='\t', row.name=FALSE)
 }
 
