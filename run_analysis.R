@@ -123,23 +123,29 @@ mean_by_subject_and_activity <- function(df) {
   result <- expand.grid(levels(df$activity), levels(df$subject_id))
   features <- get_feature_labels()
 
-  all_means <- as.data.frame(lapply(
-    features$name, function(f) {
-      apply(result, 1, function(x) {
-          mean(
-              subset(
-                df, activity==x[[1]] & subject_id==x[[2]], select=f
-                )[[f]]
+  all_means <- as.data.frame(
+      lapply(
+        features$name,
+        function(f) {
+          apply(
+              result, 1,
+              function(x) {
+                mean(
+                    subset(
+                      df, activity==x[[1]] & subject_id==x[[2]], select=f
+                      )[[f]], na.rm=TRUE
+                    )
+                }
               )
           }
-          )
-      }
-      )
+        )
       )
 
   names(result) <- c("activity", "subject_id")
   names(all_means) <- features$name
-  cbind(result, all_means)
+
+  tmp <- cbind(result, all_means)
+  tmp[!is.nan(apply(tmp[,-c(1,2)], 1, sum)),]
 }
 
 main <- function() {
